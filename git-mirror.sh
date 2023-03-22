@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 #
 # Mirrors a git repo.
 
@@ -12,11 +12,13 @@ _ME="$(basename "${0}")"
 
 _usage() {
   cat <<HEREDOC
-  
+
   Mirrors a git repo.
-  
+  May be run repeatedly to update mirrors, including pruning of branches.
+
   Usage:
     ${_ME} source_git_url target_git_url
+HEREDOC
 }
 
 _main() {
@@ -25,9 +27,10 @@ _main() {
     exit 1
   fi
 
-  local source="${1:?}"
-  local target="${2:?}"
-  local repo_name="$(basename "${source}")"
+  local source target repo_name
+  source="${1:?}"
+  target="${2:?}"
+  repo_name="$(basename "${source}")"
   if [ ! -d "${repo_name}" ]; then
     git clone --bare "${source}"
     cd "${repo_name}" || exit
