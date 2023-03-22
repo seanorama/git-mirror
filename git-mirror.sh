@@ -27,7 +27,7 @@ _main() {
 
   local source="${1:?}"
   local target="${2:?}"
-  local repo_name="$(basename ${1})"
+  local repo_name="$(basename "${source}")"
   if [ ! -d "${repo_name}" ]; then
     git clone --bare "${source}"
     cd "${repo_name}" || exit
