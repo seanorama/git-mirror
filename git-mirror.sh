@@ -13,8 +13,9 @@ _ME="$(basename "${0}")"
 _usage() {
   cat <<HEREDOC
 
-  Mirrors a git repo.
-  May be run repeatedly to update mirrors, including pruning of branches.
+  Mirrors a git repo including:
+    all branches, notes and tags
+    and pruning.
 
   Usage:
     ${_ME} source_git_url target_git_url
@@ -22,18 +23,20 @@ HEREDOC
 }
 
 _main() {
-  if [ "$#" -ne 2 ]; then
+  if [[ "$#" -ne 2 || "${1:-}" =~ ^-h|--help$ ]]; then
     _usage
     exit 1
   fi
 
-  local source target repo_name
+  local source target repo_dir
   source="${1:?}"
   target="${2:?}"
-  repo_name="$(basename "${source}")"
-  if [ ! -d "${repo_name}" ]; then
+  repo_dir="$(basename "${source}" .git).git"
+
+  ## Clones repo if it does not exist.
+  if [ ! -d "${repo_dir}" ]; then
     git clone --bare "${source}"
-    cd "${repo_name}" || exit
+    cd "${repo_dir}" || exit
     git config --add remote.origin.fetch '+refs/heads/*:refs/heads/*'
     git config --add remote.origin.fetch '+refs/notes/*:refs/notes/*'
     git config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
@@ -41,7 +44,9 @@ _main() {
     git remote set-url --push origin "${target}"
     cd -
   fi
-  cd "${repo_name}" || exit
+
+  ## Do initial push or update the mirror
+  cd "${repo_dir}" || exit
   git fetch --all --prune
   git push --mirror --prune
   cd -
